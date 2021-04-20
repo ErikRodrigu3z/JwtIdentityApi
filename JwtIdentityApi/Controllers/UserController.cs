@@ -77,11 +77,6 @@ namespace JwtIdentityApi.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
-                {
-
-                }
-
                 var result = await _identity.RegisterAsync(model);
                 if (result.Succeeded)
                 {
@@ -125,14 +120,46 @@ namespace JwtIdentityApi.Controllers
 
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(string id, [FromBody] Users user)
         {
+            try
+            {
+                var userToUpdate = await _identity.GetUserByIdAsync(id);
+                if (user == null) 
+                {
+                    return NotFound($"No se encontro usuario con id: {id}");
+                }
+                userToUpdate.Email = user.Email;
+                userToUpdate.UserName = user.Email;
+                userToUpdate.Name = user.Name;
+                userToUpdate.LastName = user.LastName;
+                userToUpdate.PhoneNumber = user.PhoneNumber;
+                userToUpdate.Active = user.Active; 
+
+                var result = await _identity.UpdateAsync(userToUpdate);  
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, HttpContext.Request.Path);
+                return BadRequest(ex);
+            }
         }
 
         // DELETE api/<UserController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
+            try
+            {
+                var result = await _identity.DeleteUserAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, HttpContext.Request.Path);
+                return BadRequest(ex);
+            }
         }
     }
 }

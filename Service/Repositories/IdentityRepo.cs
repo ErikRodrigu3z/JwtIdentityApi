@@ -28,7 +28,7 @@ namespace Service.Repositories
             _roleManager = roleManager;
         }
 
-        #region Login, logout register
+        #region Login, logout, register, update, delete
 
         public async Task<SignInResult> LoginAsync(Login login)
         {
@@ -76,6 +76,21 @@ namespace Service.Repositories
             }
 
 
+        }
+
+        public async Task<IdentityResult> DeleteUserAsync(string id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                var result = await _userManager.DeleteAsync(user);
+                return result;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         #endregion        
@@ -392,5 +407,7 @@ namespace Service.Repositories
                 throw;
             }
         }
+
+       
     }
 }

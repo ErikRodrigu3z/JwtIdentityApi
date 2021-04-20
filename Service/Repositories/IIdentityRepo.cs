@@ -21,6 +21,7 @@ namespace Service.Repositories
         Task<IdentityResult> AddLoginAsync(Users user, UserLoginInfo info);
         Task SignInAsync(Users user, bool isPersistent, string authenticationMethod = null);
         Task<IdentityResult> UpdateAsync(Users user);
+        Task<IdentityResult> DeleteUserAsync(string id); 
 
         //getters
         Task<Users> GetUserByEmailAsync(string email);
