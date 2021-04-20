@@ -28,7 +28,7 @@ namespace Service.Repositories
             _roleManager = roleManager;
         }
 
-        #region Login, logout, register, update, delete
+        #region Login, logout, register, SignIn, SignInJwtTokenAsync --> retunrn token for JWT
 
         public async Task<SignInResult> LoginAsync(Login login)
         {
@@ -47,6 +47,33 @@ namespace Service.Repositories
             await _signInManager.SignOutAsync();
         }
 
+        public Task SignInAsync(Users user, bool isPersistent, string authenticationMethod = null)
+        {
+            // Get the information about the user from the external login provider
+            var info = _signInManager.GetExternalLoginInfoAsync().Result;
+            return _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
+        }
+
+        public async Task<Users> SignInJwtTokenAsync(Users user, string password, bool lockoutOnFailure = false)
+        {
+            try
+            {
+                var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
+                if (result.Succeeded)
+                {
+                    var userToken = await CreateToken(user.Email);
+                    return userToken;
+                }
+
+                return null;
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<IdentityResult> RegisterAsync(Users user)
         {
             try
@@ -59,6 +86,24 @@ namespace Service.Repositories
             }
             catch (Exception)
             {
+                throw;
+            }
+        }
+
+
+        #endregion
+
+        #region CUD 
+
+        public async Task<IdentityResult> CreateAsync(Users user)
+        {
+            try
+            {
+                return await _userManager.CreateAsync(user);
+            }
+            catch (Exception)
+            {
+
                 throw;
             }
         }
@@ -93,7 +138,7 @@ namespace Service.Repositories
             }
         }
 
-        #endregion        
+        #endregion
 
         #region Getters
 
@@ -138,8 +183,6 @@ namespace Service.Repositories
                 throw;
             }
         }
-
-
 
         #endregion
 
@@ -270,27 +313,6 @@ namespace Service.Repositories
 
         #region Password 
 
-       
-        public async Task<bool> UserIsActiveAsync(string email)
-        {
-            try
-            {
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user.Active)
-                {
-                    return true;
-                }
-
-                return false;
-
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-
         public async Task<IdentityResult> PasswordValidatorAsync(string passwword)
         {
             try
@@ -343,38 +365,38 @@ namespace Service.Repositories
 
         #endregion
 
-        public async Task<IdentityResult> CreateAsync(Users user)
+        public async Task<bool> UserIsActiveAsync(string email)
         {
             try
             {
-                return await _userManager.CreateAsync(user);
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user.Active)
+                {
+                    return true;
+                }
+
+                return false;
+
             }
             catch (Exception)
             {
 
                 throw;
             }
-        }
+        }        
 
-        public Task<IdentityResult> AddLoginAsync(Users user, UserLoginInfo info)
+        public async Task<IdentityResult> AddLoginAsync(Users user, UserLoginInfo info)
         {
             try
             {
-                return _userManager.AddLoginAsync(user, info);
+                return await _userManager.AddLoginAsync(user, info);
             }
             catch (Exception)
             {
 
                 throw;
             }
-        }
-
-        public Task SignInAsync(Users user, bool isPersistent, string authenticationMethod = null)
-        {
-            // Get the information about the user from the external login provider
-            var info = _signInManager.GetExternalLoginInfoAsync().Result;
-            return _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
-        }
+        }        
 
         public async Task<SignInResult> CheckPasswordSignInAsync(Users user, string password, bool lockoutOnFailure = false)
         {
@@ -388,25 +410,8 @@ namespace Service.Repositories
             }
         }
 
-        public async Task<Users> SignInJwtTokenAsync(Users user, string password, bool lockoutOnFailure = false)
-        {
-            try
-            { 
-                var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
-                if (result.Succeeded)
-                {
-                    var userToken = await CreateToken(user.Email);
-                    return userToken;
-                }
-                
-                return null;
-               
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+       
+
 
        
     }
